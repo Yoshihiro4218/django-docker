@@ -1,9 +1,8 @@
 version: "2"
 services:
   django:
-    container_name: django
     build: ./django
-    command: python3 manage.py runserver 0.0.0.0:8000
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - ./django:/usr/src/app/
     ports:
@@ -14,7 +13,6 @@ services:
       - postgres
 
   postgres:
-    container_name: postgres
     build: ./postgres
     volumes:
       - sample_postgis_data:/var/lib/postgresql/data
@@ -22,6 +20,15 @@ services:
     env_file: ./postgres/.env_db
     ports:
       - 5433:5432
+
+  nginx:
+    build: ./nginx
+    volumes:
+      - ./django/static:/usr/src/app/static
+    ports:
+      - 80:80
+    depends_on:
+      - django
 
 volumes:
   sample_postgis_data:
